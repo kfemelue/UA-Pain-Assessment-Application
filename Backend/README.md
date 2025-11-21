@@ -1,8 +1,11 @@
 # Pain-App-Server
+
 Python Fast API Server
 
 To run locally:
+
 1. Create a virtual env and install dependencies
+
 ```commandline
 python -m venv env
 pip install -r requirements.txt
@@ -19,6 +22,7 @@ PROMIS_REGISTRATION=
 PROMIS_TOKEN=
 PEDIATRIC_PAIN_INTERFERENCE_SHORT_FORM_OID=
 ```
+
 3. Start the server in dev mode:
 
 ```commandline
