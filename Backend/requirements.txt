@@ -7,5 +7,5 @@ pydantic
 
 
 # Py-feat and dependencies
-Numpy=="1.23.5"
+Numpy
 git+https://github.com/cosanlab/py-feat.git
