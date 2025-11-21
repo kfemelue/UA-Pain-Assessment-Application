@@ -1,9 +1,11 @@
 # fast-api server dependencies
+setuptools
 fastapi[standard]
 python-dotenv
 requests
 uvicorn
 pydantic
+
 
 
 # Py-feat and dependencies
