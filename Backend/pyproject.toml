@@ -1,0 +1,29 @@
+[tool.poetry]
+package-mode = false
+
+[project]
+name = "ua-pain-assessment-application-server"
+version = "0.1.0"
+description = "Server for UA Experimental Research Tool"
+authors = [
+    {name = "kfemelue",email = "kfemelue@gmail.com"}
+]
+readme = "README.md"
+requires-python = "^3.9"
+dependencies = [
+    "numpy (<=1.23.5)",
+    "fastapi[standard] (<=0.121.3)",
+    "python-dotenv (<=1.2.1)",
+    "requests (<=2.32.5)",
+    "uvicorn (<=0.38.0)",
+    "pydantic (<=2.12.4)",
+    "pandas (<=2.3.3)",
+    "py-feat (<=0.7.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
