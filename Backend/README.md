@@ -25,7 +25,7 @@ PROMIS_TOKEN=
 PEDIATRIC_PAIN_INTERFERENCE_SHORT_FORM_OID=
 ```
 
-3. Start the server in dev mode:
+3. Start the server in dev mode locally:
 
 ```commandline
  python -m uvicorn api.main:app --reload --port 3000

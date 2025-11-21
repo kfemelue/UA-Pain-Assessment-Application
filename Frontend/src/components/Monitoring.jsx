@@ -19,7 +19,7 @@ function Monitoring() {
 
     /**
      * 
-     * TODO batch snapshots function
+     * TODO batch snapshots function, 
      * stop monitoring function
      * 
      * prep data in state variables to send to backend for storage
