@@ -1,10 +1,10 @@
-# Py-feat and dependencies
-Numpy
-git+https://github.com/cosanlab/py-feat.git
-
 # fast-api server dependencies
 fastapi[standard]
 python-dotenv
 requests
 uvicorn
 pydantic
+
+# Py-feat and dependencies
+Numpy
+git+https://github.com/cosanlab/py-feat.git
