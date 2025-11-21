@@ -2,6 +2,8 @@
 
 Python Fast API Server
 
+Server must be run on a Python version  <= 3.9.25 for all dependencies to be built.
+
 To run locally:
 
 1. Create a virtual env and install dependencies
