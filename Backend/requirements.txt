@@ -4,6 +4,7 @@ python-dotenv
 requests
 uvicorn
 pydantic
+websockets
 
 # Py-feat and dependencies
 tables

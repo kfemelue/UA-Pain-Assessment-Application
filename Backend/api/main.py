@@ -1,16 +1,15 @@
-from typing import Union
-from fastapi import FastAPI
+import os
+from dotenv import load_dotenv
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from Schemas.assessment import AssessmentResponse
 import Services.promis_service as promis
+import Services.emotion_service as emotions
 
+
+load_dotenv(".env")
 app = FastAPI()
-
-origins = [
-    "http://localhost",
-    "http://localhost:3001",
-]
-
+origins = os.environ["ORIGINS"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -32,4 +31,23 @@ async def score_responses(form_oid: str, body: list[AssessmentResponse]):
     response_list = body
     results = await promis.fetch_stateless_assessment_item(form_oid, response_list)
     return results
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    while True:
+        data = await websocket.receive_text()
+        await emotions.decode_image(data)
+        predictions = await emotions.get_predictions_from_image("./temp.jpeg")
+        results = await predictions.get_emotions_json()
+        os.remove("./temp.jpeg")
+        await websocket.send_json(results)
+
+
+# path to read and store json summary of socket messages
+# @app.post("/store")
+# async def save_results(results: ResultModel):
+#     # function to connect to db
+#     # function to store results
 
