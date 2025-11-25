@@ -33,12 +33,12 @@ async def score_responses(form_oid: str, body: list[AssessmentResponse]):
     return results
 
 
-@app.websocket("/ws")
+@app.websocket("/stream")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     while True:
-        data = await websocket.receive_text()
-        await emotions.decode_image(data)
+        data = await websocket.receive_json()
+        await emotions.decode_image(data['data'])
         predictions = await emotions.get_predictions_from_image("./temp.jpeg")
         results = await predictions.get_emotions_json()
         os.remove("./temp.jpeg")
