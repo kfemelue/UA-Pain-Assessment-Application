@@ -3,19 +3,22 @@ import { Context } from '../App';
 
 function Monitoring() {
     const { isTesting, setIsTesting } = useContext(Context);
-    const [socketConfig, setSocketConfig] = useState({});
+    // const [socketConfig, setSocketConfig] = useState({});
     const [stream, setStream] = useState(null);
-    const [socket, setSocket] = useState(null);
+    const socket = useRef(null);
     const [isServerReady, setIsServerReady] = useState(false);
     const [statusMessage, setStatusMessage] = useState("");
     const [streamEventText, setStreamEventText] = useState(null);
     const [batchSnapshotText, setBatchSnapshotText] = useState(null);
-    const [videoTimer, setVideoTimer] = useState(null);
+    //const [videoTimer, setVideoTimer] = useState(0);
     const [mediaStream, setMediaStream] = useState(null)
     const videoRef = useRef(null)
+    const canvasRef = useRef(null)
+    const base64Img = useRef(null)
 
     const VIDEO_FRAME_INTERVAL_MS = 1500;
     const BATCH_INTERVAL_MS = 5000;
+    const wsURL = import.meta.env.stream_url ?? "http://localhost:3000/stream"
 
     /**
      * 
@@ -28,7 +31,7 @@ function Monitoring() {
      */
 
     // html 
-    let videoElement = mediaStream ? <video ref={videoRef} id="camera-preview" muted={true} playsInline></video> : <video id="camera-preview" muted={true} playsInline></video>;
+    let videoElement = mediaStream ? <video ref={videoRef} id="camera-preview" muted={true} playsInline></video> : <video  ref={videoRef} id="camera-preview" muted={true} playsInline></video>;
 
     const previewElement = <div className="preview">
         {videoElement}
@@ -36,6 +39,9 @@ function Monitoring() {
 
     const streamOutputElement = <pre id="stream-output">{streamEventText ?? "No data yet."}</pre>;
     const batchOutputElement = <pre id="batch-output">{batchSnapshotText ?? "No snapshots yet."}</pre>;
+
+    let video = previewElement;
+    
 
     useEffect(()=>{
         if (videoRef.current && mediaStream) {
@@ -48,18 +54,14 @@ function Monitoring() {
 
     useEffect(() => {
         // call function to start video monitoring in browser
+
         if(isTesting){
-            startMonitoring();
-        }else{
-            disableMedia();
+            startMonitoring()
+        }else {
+            disableMedia()
         }
 
-
     }, [isTesting])
-
-    useEffect(() => {
-        // loadConfig();
-    }, []);
 
 
     async function blobToBase64(blob) {
@@ -78,18 +80,6 @@ function Monitoring() {
             reader.onerror = () => reject(reader.error ?? new Error('Failed to read blob'));
             reader.readAsDataURL(blob);
         });
-    }
-
-
-    function buildWebSocketUrl({ baseUrl, apiKey, configId }) {
-        const normalizedBase = (baseUrl ?? 'https://api.hume.ai/v0').replace(/\/+$/, '');
-        const protocolReplaced = normalizedBase.replace(/^http(s?):\/\//, (_, tls) => (tls === 's' ? 'wss://' : 'ws://'));
-        const wsBase = protocolReplaced.startsWith('ws') ? protocolReplaced : `wss://${protocolReplaced}`;
-        const params = new URLSearchParams({ apikey: apiKey });
-        if (configId) {
-            params.set('config_id', configId);
-        }
-        return `${wsBase}/stream/models?${params.toString()}`;
     }
 
     async function enableMedia() {
@@ -116,13 +106,21 @@ function Monitoring() {
         setStatusMessage("Camera and microphone released");
     };
 
-    async function startMonitoring(metadata) { 
-        await enableMedia();
-        await openSocket(config)
-        await startVideoStreaming(metadata);
-        await startBatchSnapshots(metadata);
-        await setStatusMessage("Monitoring enabled via Hume Expression Measurement (video only).");
+    async function startMonitoring() { 
+
+        try {
+            await enableMedia();
+            await openSocket(); //config
+            await startVideoStreaming();
+            await startBatchSnapshots();
+
+        }catch (error){
+            console.error(error)
+        }
+
+        await setStatusMessage("Expression Measurement Monitoring Enabled (video only).");
     };
+
     async function stopMonitoring() { 
 
 
@@ -130,109 +128,85 @@ function Monitoring() {
     };
 
 
-    async function loadConfig() {
-        let response = await fetch('Http://localhost:3000/api/hume/config');
-        let config = await response.json();
-        setSocketConfig(config);
-    }
     async function openSocket() {
-        const wsURL = buildWebSocketUrl(socketConfig);
+        // const wsURL = buildWebSocketUrl(socketConfig);
         await new Promise((resolve, reject) => {
-            const socket = new WebSocket(wsUrl);
+            const new_socket = new WebSocket(wsURL);
 
-            //?
             let settled = false;
 
-            socket.addEventListener('open', () => {
+            new_socket.addEventListener('open', (event) => {
+                console.log("socket open", event)
                 settled = true;
-                setSocket(socket);
+                socket.current = new_socket;
                 setIsServerReady(true);
-                setStatusMessage('Connected to Hume streaming endpoint.');
+                setStatusMessage('Connected to Streaming Point');
                 resolve();
             });
 
-            socket.addEventListener("message", (event) => {
+            new_socket.addEventListener("message", (event) => {
+                console.log("message received", event.data)
                 handleSocketMessage(event);
             });
 
-            socket.addEventListener("close", (event) => {
-                setSocket(null)
+            new_socket.addEventListener("close", (event) => {
+                socket.current = null
                 setIsServerReady(true);
                 if (!settled) {
                     settled = true;
                     reject(new Error(`Streaming socket closed before connection was established (code ${event.code})`));
                 } else {
-                    setStatusMessage("Streaming socket closed");
+                    setStatusMessage("Streaming socket closed", event.code , event.reason);
                 }
             });
 
-            socket.addEventListener("error", (event) => {
+            new_socket.addEventListener("error", (event) => {
                 if (!settled) {
                     settled = true;
-                    reject(new Error('Failed to establish connection to Hume streaming endpoint'));
+                    reject(new Error('Failed to establish connection to streaming endpoint'));
                 } else {
-                    this.updateStatus(`Streaming error: ${event.message ?? 'unknown error'}`);
+                    setStatusMessage(`Streaming error: ${event.message ?? 'unknown error'}`);
                 }
-
             });
 
-            //setSocket(socket);
+            socket.current = new_socket
         });
     };
 
-    async function startVideoStreaming() {
-        if (mediaStream) {
-            return;
-        }
+    const captureFrame = async () => {
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+ 
+        const ctx = canvasRef.current && canvasRef.current.getContext("2d");
 
-        // const ctx = canvas.getContext('2d', { willReadFrequently: false });
-        // if (!ctx) {
-        //     console.warn('Unable to create canvas context; video streaming disabled.');
-        //     return;
-        // };
+        await ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        const captureFrame = async () => {
-            //
-            if (!socket || socket.readyState !== WebSocket.OPEN) return;
+        await canvasRef.current.toBlob(async (blob)=>{
+                base64Img.current = await blobToBase64(blob);
+                const payload = JSON.stringify({
+                    data: base64Img.current,
+                    models: {
+                    face: {},
+                    }
+                });
+            
+            console.log(payload);
 
-            const video = videoElement;
+            socket.current.send(payload);
+            setIsServerReady(false);
 
-            if (!video?.videoWidth || !video.videoHeaight) return;
+        }, 'image/jpeg', 0.8);
+        
+    };
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            await new Promise(() => {
-                canvas.toBlob(
-                    async (blob) => {
-                        try {
-                            if (!blob) return resolve();
-                            const base64 = await blobToBase64(blob);
-                            const payload = JSON.stringify({
-                                data: base64,
-                                models: {
-                                    face: {},
-                                },
-                            });
-                            if (!this.serverReady) return resolve();
-                            setIsServerReady(false);
-                            socket.send(payload);
-                        } catch (error) {
-                            console.error('Failed to encode video frame', error);
-                        } finally {
-                            resolve();
-                        }
-                    },
-                    'image/jpeg',
-                    0.8
-                );
+    async function startVideoStreaming( ) {
+        setInterval( ()=>{ 
+            captureFrame()
+        }, VIDEO_FRAME_INTERVAL_MS)
 
-            });
-
-        };
-
-        setVideoTimer(setInterval(captureFrame, VIDEO_FRAME_INTERVAL_MS));
     };
     async function startBatchSnapshots() { } // keep from old app
 
@@ -245,12 +219,12 @@ function Monitoring() {
                 return;
             }
             setStreamEventText(payload);
+            console.log(payload);
 
         } catch (error) {
             console.error('Failed to parse streaming message', error);
 
         } finally {
-            //?
             setIsServerReady(true);
         };
     };
@@ -261,13 +235,8 @@ function Monitoring() {
     async function extractTopEmotions() { }; // append to state variable with time stamps
     async function collectWarnings() { };
 
-    // use isTesting to start and stop monitoring as well
-
-    // fetch hume ai credentials
-    // open socket
-    // get video from client
-    // stream video to hume api,
-    // display hume responses in strema responses div 
+    // display responses in strema responses div
+    // stop monitoring on form submit 
     // append timestamped results to state variable object to store in db eventually alongside assesment answers/grade
     // store video clip itself?
 
@@ -275,6 +244,8 @@ function Monitoring() {
         <div>
             <h2>Emotion Monitoring</h2>
             {previewElement}
+            <div hidden><canvas ref={canvasRef} width={video.videoWidth} height={video.videoHeight}> </canvas></div>
+            
             <div className="status-cards">
                 <article>
                     <h3>Latest Stream Event</h3>
