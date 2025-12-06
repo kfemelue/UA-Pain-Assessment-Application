@@ -167,7 +167,7 @@ function PainAssessment({ formOID }) {
                 )}
             </>) : (
                 <>
-                    <p className="question-text"> Welcome to the Ipsum Lorem Pain Assessment site: Impsum lorem ipsum lorem ipsum lorem. While you take the assesment, HumeAI will be used to measure your facial expressions. Please enter your participant Id below and begin test</p>
+                    <p className="question-text"> Welcome to the Ipsum Lorem Pain Assessment site: Impsum lorem ipsum lorem ipsum lorem. While you take the assesment, pyfeat cv will be used to measure your facial expressions. Please enter your participant Id below and begin test</p>
                     <form>
                         <label htmlFor="participantID" className="text-gray-700" > Participant ID: </label>
                         <input type="text" name="participantID" onChange={(event)=>{ setParticipantID(event.target.value)}} />

@@ -62,8 +62,6 @@ function Monitoring() {
 
     }, [isTesting])
 
-    console.log(analysis)
-
 
     async function blobToBase64(blob) {
         return new Promise((resolve, reject) => {
@@ -210,7 +208,7 @@ function Monitoring() {
 
     };
     async function startBatchSnapshots() { 
-        
+
     } // keep from old app
 
     async function handleSocketMessage(socketEvent) {
