@@ -40,7 +40,7 @@ async def websocket_endpoint(websocket: WebSocket):
         data = await websocket.receive_json()
         await emotions.decode_image(data['data'])
         predictions = await emotions.get_predictions_from_image("./temp.jpeg")
-        results = await predictions.get_emotions_json()
+        results = await predictions.get_emotions_dict()
         os.remove("./temp.jpeg")
         await websocket.send_json(results)
 

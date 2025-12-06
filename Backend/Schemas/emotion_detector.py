@@ -10,8 +10,8 @@ class EmotionPredictor:
     async def get_predictions_df(self):
         return self.image_detector
 
-    async def get_emotions_json(self):
+    async def get_emotions_dict(self):
         predictions = await self.get_predictions_df()
-        emotions_json = (predictions[["anger", "disgust", "fear", "happiness", "sadness", "surprise", "neutral"]]
-                         .to_json())
-        return emotions_json
+        emotions_dict = (predictions[["anger", "disgust", "fear", "happiness", "sadness", "surprise", "neutral"]]
+                         .to_dict())
+        return emotions_dict

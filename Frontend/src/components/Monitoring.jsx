@@ -15,8 +15,11 @@ function Monitoring() {
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
     const base64Img = useRef(null)
+    const [streamEventStamp, setStreamEventStamp] = useState(null)
+    const [streamEventCount, setStreamEventCount] = useState(0)
+    const [analysis, setAnalysis] = useState({})
 
-    const VIDEO_FRAME_INTERVAL_MS = 1500;
+    const VIDEO_FRAME_INTERVAL_MS = 5000;
     const BATCH_INTERVAL_MS = 5000;
     const wsURL = import.meta.env.stream_url ?? "http://localhost:3000/stream"
 
@@ -24,10 +27,6 @@ function Monitoring() {
      * 
      * TODO batch snapshots function, 
      * stop monitoring function
-     * 
-     * prep data in state variables to send to backend for storage
-     * 
-     * 
      */
 
     // html 
@@ -62,6 +61,8 @@ function Monitoring() {
         }
 
     }, [isTesting])
+
+    console.log(analysis)
 
 
     async function blobToBase64(blob) {
@@ -191,11 +192,11 @@ function Monitoring() {
                     face: {},
                     }
                 });
-            
-            console.log(payload);
 
             socket.current.send(payload);
             setIsServerReady(false);
+
+            //append messages with analysis json to a state variable
 
         }, 'image/jpeg', 0.8);
         
@@ -208,18 +209,31 @@ function Monitoring() {
         }, VIDEO_FRAME_INTERVAL_MS)
 
     };
-    async function startBatchSnapshots() { } // keep from old app
+    async function startBatchSnapshots() { 
+        
+    } // keep from old app
 
     async function handleSocketMessage(socketEvent) {
         try {
+            const now = Date.now()
+            // setStreamEventStamp( now );
+            const string_ts = `${now}`
             const payload = await JSON.parse(socketEvent.data);
+
             if (payload.error) {
                 setStatusMessage(`Streaming error: ${payload.error}`);
                 setIsServerReady(true);
                 return;
             }
-            setStreamEventText(payload);
-            console.log(payload);
+            setStreamEventText(JSON.stringify(payload));
+
+
+            let newStreamEvent = {};
+            let update_analysis;
+            newStreamEvent[string_ts] = {payload};
+            update_analysis = await {...analysis, ...newStreamEvent}
+
+            setAnalysis(update_analysis)
 
         } catch (error) {
             console.error('Failed to parse streaming message', error);
@@ -234,11 +248,6 @@ function Monitoring() {
     async function updateStatus() { };
     async function extractTopEmotions() { }; // append to state variable with time stamps
     async function collectWarnings() { };
-
-    // display responses in strema responses div
-    // stop monitoring on form submit 
-    // append timestamped results to state variable object to store in db eventually alongside assesment answers/grade
-    // store video clip itself?
 
     return (
         <div>
