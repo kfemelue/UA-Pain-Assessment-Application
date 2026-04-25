@@ -5,6 +5,7 @@ requests
 uvicorn
 pydantic
 websockets
+psutil
 
 # Py-feat and dependencies
 #tables

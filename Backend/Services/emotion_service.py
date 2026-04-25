@@ -1,9 +1,16 @@
 from Schemas.emotion_detector import EmotionPredictor
 import base64
+import psutil
+import os
+
+
 
 
 async def get_predictions_from_image(img_path):
     prediction = EmotionPredictor(img_path, "image")
+    process = psutil.Process(os.getpid())
+    print(f"CPU Usage: {process.cpu_percent(interval=1)}%")
+    print(f"RAM Usage: {process.memory_info().rss / (1024 * 1024):.2f} MB")
     return prediction
 
 
