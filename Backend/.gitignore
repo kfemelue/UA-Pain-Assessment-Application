@@ -181,3 +181,5 @@ cython_debug/
 .cursorindexingignore
 
 temp.jpeg
+
+.DS_Store
