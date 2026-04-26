@@ -19,6 +19,11 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+def read_root():
+    return {"Status": "Server is running"}
+
+
 @app.get("/api/promis/forms/{form_oid}")
 async def get_form(form_oid: str):
     oid = form_oid
