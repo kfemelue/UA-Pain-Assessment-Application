@@ -8,6 +8,7 @@ function PainAssessment({ formOID }) {
     const [scoreTheta, setScoreTheta] = useState(null);
     const [scoreStdError, setScoreStdError] = useState(null);
     const [submitError, setSubmitError] = useState(null);
+    const welcomeMessage = "Please enter your participant ID and fill out the following assessment. While you complete the assessment your emotions will be monitored via video feed."
 
     const {participantID, setParticipantID} = useContext(Context);
     const {isTesting, setIsTesting} = useContext(Context);
@@ -167,7 +168,7 @@ function PainAssessment({ formOID }) {
                 )}
             </>) : (
                 <>
-                    <p className="question-text"> Welcome to the Ipsum Lorem Pain Assessment site: Impsum lorem ipsum lorem ipsum lorem. While you take the assesment, pyfeat cv will be used to measure your facial expressions. Please enter your participant Id below and begin test</p>
+                    <p className="question-text"> {welcomeMessage}</p>
                     <form>
                         <label htmlFor="participantID" className="text-gray-700" > Participant ID: </label>
                         <input type="text" name="participantID" onChange={(event)=>{ setParticipantID(event.target.value)}} />
