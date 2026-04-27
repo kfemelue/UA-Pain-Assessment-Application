@@ -21,10 +21,9 @@ function App() {
   }
 
   useEffect(()=>{
-    // window.electron.subscribeStatistics()
   },[])
 
-  const formOID = import.meta.env.oid ?? "154D0273-C3F6-4BCE-8885-3194D4CC4596";
+  //const formOID = import.meta.env.VITE_form_oid ?? "154D0273-C3F6-4BCE-8885-3194D4CC4596";
 
   return (
     <Context.Provider value={contextVariables}>

@@ -11,7 +11,7 @@ function Home() {
     const { displayTest, setDisplayTest } = useContext(Context);
 
 
-    const formOID = import.meta.env.form_oid ?? "154D0273-C3F6-4BCE-8885-3194D4CC4596"
+    const formOID = import.meta.env.VITE_form_oid ?? "154D0273-C3F6-4BCE-8885-3194D4CC4596"
 
 
     // conditionally display a registration form, once submitted swap the <main></main> with a new main to show assessment and monitoring

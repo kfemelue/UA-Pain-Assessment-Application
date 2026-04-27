@@ -13,7 +13,7 @@ function PainAssessment({ formOID }) {
     const {isTesting, setIsTesting} = useContext(Context);
     const {displayTest, setDisplayTest} = useContext(Context);
 
-    const base_uri = import.meta.env.server_base_uri ?? 'http://localhost:3000'
+    const base_uri = import.meta.env.VITE_server_base_uri ?? 'http://localhost:3000'
 
 
     const handleBeginAssessment = (event) => {
@@ -22,8 +22,8 @@ function PainAssessment({ formOID }) {
         getFormQuestions();
     }
 
-    const getFormQuestions = () => {
-        const uri = `${base_uri}/api/promis/forms/${formOID}`
+    const getFormQuestions = async () => {
+        const uri = await `${base_uri}/api/promis/forms/${formOID}`
         fetch(uri)
             .then((res) => res.json())
             .then((data) => {
