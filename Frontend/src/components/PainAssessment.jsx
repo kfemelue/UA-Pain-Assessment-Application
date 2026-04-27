@@ -8,13 +8,13 @@ function PainAssessment({ formOID }) {
     const [scoreTheta, setScoreTheta] = useState(null);
     const [scoreStdError, setScoreStdError] = useState(null);
     const [submitError, setSubmitError] = useState(null);
-    
+
     const {participantID, setParticipantID} = useContext(Context);
     const {isTesting, setIsTesting} = useContext(Context);
     const {displayTest, setDisplayTest} = useContext(Context);
-
-    const base_uri = import.meta.env.VITE_server_base_uri ?? 'http://localhost:3000'
-
+    
+    let base_uri;
+    import.meta.env.VITE_environment==="local" ? base_uri='http://localhost:3000' : base_uri= import.meta.env.VITE_server_base_uri
 
     const handleBeginAssessment = (event) => {
         setIsTesting(true);

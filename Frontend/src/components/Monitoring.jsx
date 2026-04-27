@@ -21,8 +21,9 @@ function Monitoring() {
 
     const VIDEO_FRAME_INTERVAL_MS = 5000;
     const BATCH_INTERVAL_MS = 5000;
-    const wsURL = `${import.meta.env.VITE_server_base_uri}/stream` ?? "http://localhost:3000/stream"
-
+    let wsURL;
+    import.meta.env.VITE_environment==="local" ? wsURL="http://localhost:3000/stream" : wsURL= `${import.meta.env.VITE_server_base_uri}/stream`;
+        
     /**
      * 
      * TODO batch snapshots function, 
