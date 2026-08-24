@@ -10,6 +10,9 @@ function App() {
   const [isTesting, setIsTesting] = useState(false)
   const [displayTest, setDisplayTest] = useState(false)
   const [participantID, setParticipantID] = useState("");
+  //const [emotionAnalysis, setEmotionAnalysis] = useState([{
+     //timestamp in ms : streamOutPutElement }]
+  // })
   
   const contextVariables = {
     isTesting,
@@ -17,7 +20,7 @@ function App() {
     displayTest,
     setDisplayTest,
     participantID,
-    setParticipantID
+    setParticipantID,
   }
 
   useEffect(()=>{

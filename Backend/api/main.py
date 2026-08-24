@@ -1,10 +1,14 @@
 import os
+import Services.promis_service as promis
+import Services.emotion_service as emotions
+import json
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from Schemas.assessment import AssessmentResponse
-import Services.promis_service as promis
-import Services.emotion_service as emotions
+from Models.assessment import AssessmentResponse
+from Models.pain_assessment_results import PainAssessmentResults
+from Models.emotion_analysis_results import EmotionAnalysisReport
+from datetime import datetime
 
 
 load_dotenv(".env")
@@ -50,9 +54,36 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.send_json(results)
 
 
-# path to read and store json summary of socket messages
-# @app.post("/store")
-# async def save_results(results: ResultModel):
-#     # function to connect to db
-#     # function to store results
+#path to read and store json summary of socket messages
+@app.post("/emotions-report")
+async def save_results(emotion_analysis_report: EmotionAnalysisReport):
+    print(emotion_analysis_report)
 
+    # replace with function to store results in a DB instead of a file
+    data = emotion_analysis_report.model_dump()
+
+    print(data)
+    time = datetime.now()
+    participant_id = emotion_analysis_report.participant_ID
+
+    with open(f"temp_files/emotions-analysis_{time}_{participant_id}_data.json", "w") as f:
+        json.dump({"data": data}, f, indent=4)
+
+    return {"message": "Data saved successfully", "saved_data": data}
+
+
+
+# path to read and store json summary of pain assessment results
+@app.post("/pain-report")
+async def save_results(assessment_results: PainAssessmentResults):
+    print(assessment_results)
+    # replace with function to store results in a DB instead of a file
+    data = assessment_results.model_dump()
+    print(data)
+    time = datetime.now()
+    participant_id = assessment_results.participant_ID
+
+    with open(f"temp_files/pain-assessment_{time}_{participant_id}_data.json", "w") as f:
+        json.dump({"data": data}, f, indent=4)
+
+    return {"message": "Data saved successfully", "saved_data": data}

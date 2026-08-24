@@ -10,12 +10,14 @@ function PainAssessment({ formOID }) {
     const [submitError, setSubmitError] = useState(null);
     const welcomeMessage = "Please enter your participant ID and fill out the following assessment. While you complete the assessment your emotions will be monitored via video feed."
 
-    const {participantID, setParticipantID} = useContext(Context);
-    const {isTesting, setIsTesting} = useContext(Context);
-    const {displayTest, setDisplayTest} = useContext(Context);
-    
+    const { participantID, setParticipantID } = useContext(Context);
+    const { isTesting, setIsTesting } = useContext(Context);
+    const { displayTest, setDisplayTest } = useContext(Context);
+
     let base_uri;
-    import.meta.env.VITE_environment==="local" ? base_uri='http://localhost:3000' : base_uri= import.meta.env.VITE_server_base_uri
+    let pain_report_URL;
+    import.meta.env.VITE_environment === "local" ? base_uri = 'http://localhost:3000' : base_uri = import.meta.env.VITE_server_base_uri
+    import.meta.env.VITE_environment === "local" ? pain_report_URL = `http://localhost:3000/pain-report` : pain_report_URL = `${import.meta.env.VITE_server_base_uri}/pain-report`
 
     const handleBeginAssessment = (event) => {
         setIsTesting(true);
@@ -25,7 +27,13 @@ function PainAssessment({ formOID }) {
 
     const getFormQuestions = async () => {
         const uri = await `${base_uri}/api/promis/forms/${formOID}`
-        fetch(uri)
+        const options = {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Accept': '*/*'
+            }
+        }
+        await fetch(uri, options)
             .then((res) => res.json())
             .then((data) => {
                 setQuestions(data.Items || []);
@@ -59,7 +67,8 @@ function PainAssessment({ formOID }) {
             const options = {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin' : '*'
                 },
                 body: JSON.stringify(payload)
             }
@@ -71,20 +80,52 @@ function PainAssessment({ formOID }) {
             }
 
             const result = await resp.json();
-            setScoreTheta(result.Theta);
-            setScoreStdError(result.StdError);
-
-            setIsTesting(false);
+            await setScoreTheta(result.Theta);
+            await setScoreStdError(result.StdError);
+            await setIsTesting(false);
 
             console.log(resp)
-
-            console.log("Assessment result:", result);
 
         } catch (err) {
             console.error("Submission error:", err);
             setSubmitError(err.message);
+        } finally {
+            storeResults();
         }
     };
+
+    async function storeResults() {
+        try {
+            const assessmentSubmissionArray = Object.entries(responses).map(
+                ([itemID, itemResponseOID], index) => ({
+                    ItemID: itemID,
+                    ItemResponseOID: itemResponseOID,
+                    Order: index + 1
+                })
+            );
+            console.log(assessmentSubmissionArray)
+
+            const options = {
+                "method": "POST",
+                "headers": {
+                    'Content-Type': 'application/json'
+                },
+                "body": JSON.stringify({
+                    timestamp: await String(Date.now()),
+                    participant_ID: participantID,
+                    pain_assessment_sumbmission: assessmentSubmissionArray,
+                    pain_assessment_score: { theta: scoreTheta, stderror: scoreStdError }
+                })
+            }
+            const response = await fetch(pain_report_URL, options)
+            const message = await response.json()
+            console.log(message)
+
+        } catch (error) {
+            console.error(error)
+        }
+
+    }
 
     // if (loading) {
     //     return <div className="text-center text-gray-500">Loading questions...</div>;
@@ -171,8 +212,8 @@ function PainAssessment({ formOID }) {
                     <p className="question-text"> {welcomeMessage}</p>
                     <form>
                         <label htmlFor="participantID" className="text-gray-700" > Participant ID: </label>
-                        <input type="text" name="participantID" onChange={(event)=>{ setParticipantID(event.target.value)}} />
-                        <button type="submit" className="flex justify-center mt-8" onClick={(event)=>{handleBeginAssessment(event)}}>Begin Test</button>
+                        <input type="text" name="participantID" onChange={(event) => { setParticipantID(event.target.value) }} />
+                        <button type="submit" className="flex justify-center mt-8" onClick={(event) => { handleBeginAssessment(event) }}>Begin Test</button>
                     </form>
                 </>
             )}

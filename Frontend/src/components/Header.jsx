@@ -20,7 +20,7 @@ function Header() {
                                 <div className="title-row">
                                     <h1>Pediatric Pain Score Detector</h1>
                                 </div>
-                                <span>Realtime monitoring powered by Hume AI Expression Measurement</span>
+                                <span>Realtime monitoring powered by <a href="https://py-feat.org/pages/intro.html">Py-Feat</a> Expression Measurement</span>
                             </div>
                         </div>
                     </div>

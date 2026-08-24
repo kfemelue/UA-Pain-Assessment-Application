@@ -19,10 +19,18 @@ function Monitoring() {
     const [streamEventCount, setStreamEventCount] = useState(0)
     const [analysis, setAnalysis] = useState({})
 
+    // add analysis snapshots to this array [ {timestamp: {results} } ]
+    const [analysisReport, setAnalysisReport] = useState([])
+    const {participantID, setParticipantID} = useContext(Context);
+
+    
+
     const VIDEO_FRAME_INTERVAL_MS = 5000;
     const BATCH_INTERVAL_MS = 5000;
     let wsURL;
+    let ea_report_URL;
     import.meta.env.VITE_environment==="local" ? wsURL="http://localhost:3000/stream" : wsURL= `${import.meta.env.VITE_server_base_uri}/stream`;
+    import.meta.env.VITE_environment==="local" ? ea_report_URL="http://localhost:3000/emotions-report" : ea_report_URL= `${import.meta.env.VITE_server_base_uri}/emotions-report`;
         
     /**
      * 
@@ -58,7 +66,7 @@ function Monitoring() {
         if(isTesting){
             startMonitoring()
         }else {
-            disableMedia()
+            stopMonitoring();
         }
 
     }, [isTesting])
@@ -99,11 +107,11 @@ function Monitoring() {
 
     async function disableMedia() {
         //await stopMonitoring();
-        mediaStream?.getTracks().forEach((track) => {
+        await mediaStream?.getTracks().forEach((track) => {
             track.stop();
         });
-        setMediaStream(null);
-        setStatusMessage("Camera and microphone released");
+        await setMediaStream(null);
+        await setStatusMessage("Camera and microphone released");
     };
 
     async function startMonitoring() { 
@@ -122,9 +130,8 @@ function Monitoring() {
     };
 
     async function stopMonitoring() { 
-
-
-
+        await disableMedia();
+        await sendReport();
     };
 
 
@@ -145,7 +152,7 @@ function Monitoring() {
             });
 
             new_socket.addEventListener("message", (event) => {
-                console.log("message received", event.data)
+                // console.log("message received", event.data)
                 handleSocketMessage(event);
             });
 
@@ -232,7 +239,9 @@ function Monitoring() {
             newStreamEvent[string_ts] = {payload};
             update_analysis = await {...analysis, ...newStreamEvent}
 
-            setAnalysis(update_analysis)
+            await setAnalysis(update_analysis)
+            await setAnalysisReport( prev => [...prev, update_analysis] )
+            
 
         } catch (error) {
             console.error('Failed to parse streaming message', error);
@@ -242,11 +251,37 @@ function Monitoring() {
         };
     };
 
+    async function sendReport () {
+
+        try {
+            const options = {
+                "method": "POST",
+                "headers": {
+                    'Content-Type' : 'application/json',
+                    'Access-Control-Allow-Origin' : '*'
+                },
+                "body": JSON.stringify({
+                    participant_ID: participantID,
+                    emotion_analysis_report: analysisReport
+                })
+            }
+            const response = await fetch(ea_report_URL, options)
+            const message = await response.json()
+            console.log(message)
+
+        } catch (error){
+            console.error(error)
+        }
+
+    }
+
     async function renderStreamEvent() { };
     async function renderBatchResult() { }; //keep
     async function updateStatus() { };
     async function extractTopEmotions() { }; // append to state variable with time stamps
     async function collectWarnings() { };
+
+    console.log(analysisReport)
 
     return (
         <div>
